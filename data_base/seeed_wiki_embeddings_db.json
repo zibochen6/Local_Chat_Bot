@@ -1,14 +1,19 @@
 {
   "metadata": {
-    "total_pages": 4058,
-    "total_vectors": 4058,
+    "total_pages": 4079,
+    "total_vectors": 21,
     "vector_dimension": 768,
-    "crawl_time": "2025-08-20 20:22:15",
+    "crawl_time": "2025-09-01 10:53:58",
     "base_url": "https://wiki.seeedstudio.com",
     "max_depth": 4,
-    "content_type": "英文页面介绍摘要",
+    "content_type": "中英文页面介绍摘要",
     "embedding_model": "nomic-embed-text",
-    "index_type": "FAISS_IndexFlatIP"
+    "index_type": "FAISS_IndexFlatIP",
+    "languages": [
+      "中文",
+      "English"
+    ],
+    "last_update": "2025-09-01T10:53:58.802819"
   },
   "pages": [
     {
@@ -32474,6 +32479,195 @@
       "depth": 4,
       "content_length": 326,
       "timestamp": "2025-08-20 20:22:09"
+    },
+    {
+      "url": "https://wiki.seeedstudio.com/ja/Getting_Started/",
+      "title": "Seeed Studio Wikiプラットフォームの使い方 | Seeed Studio Wiki",
+      "content": "[中文介绍] Seeed Studio​ 2008年以来、信頼されるIoT（Internet of Things）ハードウェアパートナーとして、Seeed Studioは物理的な世界のインタラクティブなデジタルレプリカの実現に尽力しています。このウェブサイトは、Seeed Studioが現在公開しているすべてのWikiを収集したオープンソースプラットフォームであり、毎週更新され、製品ラインナップや研究成果を紹介しています。その内容には自然環境のデジタル化も含まれます。 このWikiプラットフォームで扱う内容は？​ このプラットフォームは、サイドバーに表示される主要なトピックに焦点を当て、すべての製品に関する最新情報を提供します。 実用的な使用方法やトラブルシューティング、産業用IoTシナリオの詳細なドキュメント、さらに独自のプロジェクトを開始するためのオープン開発ツールに関するガイドを見つけることができます。 センシングとデータ通信​",
+      "depth": 0,
+      "content_length": 423,
+      "timestamp": "2025-09-01 10:51:20",
+      "language": "中文"
+    },
+    {
+      "url": "https://wiki.seeedstudio.com/es/SeeedStudio_XIAO_Series_Introduction/",
+      "title": "XIAO INTRODUCTION | Seeed Studio Wiki",
+      "content": "[English Introduction] Tabla de Comparación de la Serie XIAO de Seeed Studio​ Seeed Studio XIAO SAMD21Seeed Studio XIAO RP2040Seeed Studio XIAO RP2350Seeed Studio XIAO nRF52840Seeed Studio XIAO nRF52840 SenseSeeed Studio XIAO ESP32C3Seeed Studio XIAO ESP32C6Seeed Studio XIAO ESP32S3Seeed Studio XIAO ESP32S3 SenseSeeed Studio XIAO RA4M1Seeed Studio XIAO MG24Seeed Studio XIAO MG24 SenseSKU102010328102010428102010550102010448102010469113991054113991254113991114113991115102010551102010590102010610Descripción breveUniversal con gran estabilidad y compatibilidadCompatible con el ecosistema Raspberry Pi RP2040Compatible con el ecosistema Raspberry Pi RP2350Bluetooth 5.0 de ultra bajo consumo, ideal para aplicaciones de productos de grado de consumoVersión avanzada del XIAO nRF52840 con micrófono integrado y unidad de medición inercial (IMU) de 6 ejesCon WiFi y BLE, económico y basado en RISC-VC...",
+      "depth": 0,
+      "content_length": 903,
+      "timestamp": "2025-09-01 10:52:06",
+      "language": "English"
+    },
+    {
+      "url": "https://wiki.seeedstudio.com/ja/Contribution-Guide/",
+      "title": "貢献ガイド | Seeed Studio Wiki",
+      "content": "[English Introduction] この文書は AI によって翻訳されています。内容に不正確な点や改善すべき点がございましたら、文書下部のコメント欄または以下の Issue ページにてご報告ください。 https://github.com/Seeed-Studio/wiki-documents/issues オプション 1: プルリクエストの完全な手順​ オプション 2: プルリクエストの簡易手順​ 必要なファイルをすべてダウンロードし、Markdownファイルや画像を追加して、直接リポジトリにプルリクエストを送信することができます。 1. 画像はどこに保存すればよいですか？​ すべてのファイル（Markdownファイルと画像）は \"Contributor_Files\" フォルダーに保存してください：",
+      "depth": 1,
+      "content_length": 360,
+      "timestamp": "2025-09-01 10:53:38",
+      "language": "English"
+    },
+    {
+      "url": "https://wiki.seeedstudio.com/ja/ODYSSEY_Intro/",
+      "title": "ODYSSEY ガイド | Seeed Studio Wiki",
+      "content": "[English Introduction] On this page note この文書は AI によって翻訳されています。内容に不正確な点や改善すべき点がございましたら、文書下部のコメント欄または以下の Issue ページにてご報告ください。 https://github.com/Seeed-Studio/wiki-documents/issues ODYSSEY - X86 ​ ODYSSEY - X86J41x5 SBCシリーズは、ODYSSEY - X86J4105、ODYSSEY - X86J4125、ODYSSEY - X86J4125 V2で構成されています。これらはIntel Celeron J4105/J4125をベースにしており、8GB LPDDR4 RAM、64GB eMMCストレージ（eMMCバージョンのみ）、オンボードWi-Fi/BLE、デュアル1GbE/2.5GbEポート、オーディオ入力および出力、USBポート、HDMI、SATAコネクタ、PCIeなど、標準的なコンピュータに必要なすべての優れた機能を備えています。 🖱️ 今すぐ購入 📚 詳細を見る ODYSSEY - X86J41x5 の使い方 40ピンGPIOへのアクセス アクセサリの追加 このWikiには、ハードウェア仕様、オペレーティングシステムのインストール、外部コンポーネントの接続、Arduino Coreの使用に関する情報が含まれています。 このWikiでは、Linux（Ubuntu）上でODYSSEY - X86J41x5の40ピンGPIOにアクセスして制御する方法を説明しています。これにより、ODYSSEY - X86J41x5を使用してIoTプロジェクトを簡単に構築できます！ このWikiでは、ODYSSEY - X86J41x5にさまざまなアクセサリを追加して、ニーズに合わせてパフォーマンスを向上させる方法を紹介しています。 📚 詳細を見る 📚 詳細を見る 📚 詳細を見る ODYSSEY用 Coral Mini PCIe Accelerator ODYSSEY用 LTE...",
+      "depth": 1,
+      "content_length": 903,
+      "timestamp": "2025-09-01 10:53:39",
+      "language": "English"
+    },
+    {
+      "url": "https://wiki.seeedstudio.com/ja/microbit_wiki_page/",
+      "title": "microbit wiki page | Seeed Studio Wiki",
+      "content": "[English Introduction] この文書は AI によって翻訳されています。内容に不正確な点や改善すべき点がございましたら、文書下部のコメント欄または以下の Issue ページにてご報告ください。 https://github.com/Seeed-Studio/wiki-documents/issues Micro:bitの紹介​ こんにちは、こちらはMicro:bitの特集ページです。ようこそ。Micro:bitに関する豊富なリソースを準備しています。Micro:bitアクセサリー、Micro:bitキット、対応するセンサーやアクチュエーターが含まれています。また、Micro:bitを活用するための多様で充実したチュートリアルもご用意しています。 MakeCodeチュートリアル​ 1.OledDisplayで遊ぶ​ GitHubページをご参照ください。",
+      "depth": 1,
+      "content_length": 389,
+      "timestamp": "2025-09-01 10:53:40",
+      "language": "English"
+    },
+    {
+      "url": "https://wiki.seeedstudio.com/ja/BeagleBone/",
+      "title": "BeagleBone®の紹介 | Seeed Studio Wiki",
+      "content": "[English Introduction] この文書は AI によって翻訳されています。内容に不正確な点や改善すべき点がございましたら、文書下部のコメント欄または以下の Issue ページにてご報告ください。 https://github.com/Seeed-Studio/wiki-documents/issues BeagleBone®はマイクロコントローラーの世界では比較的新しい存在ですが、高性能と低消費電力により、オープンハードウェアの世界で人気のある3つのプラットフォームの1つとなっています。BeagleBone®は小型ながら大きな機能を持つPCであり、さまざまな用途に使用できるだけでなく、デスクトップPCと同じタスクを多く処理することができます。ArduinoやRaspberry Piと同様に、BeagleBone®ボードはアーティスト、デザイナー、ホビイストによってプロジェクトを実現するために使用されています。 BeagleBone®ボードは素晴らしいものですが、Seeedのメンバーは現在のBeagleBone®に満足せず、何か新しい変化を求めています。Seeeduinoで行ったように、私たちはBeagleBone.orgと話し合い、自分たちの考えを伝えた結果、彼らと一緒に全く新しいボードを作る機会を得ました。こうしてSeeed Studio独自のBeagleBone®、BeagleBone® Green（略称：BBG）が誕生しました。 BeagleBone® GreenはBeagleBone® Black（略称：BBB）を基にしています。もしBBBについて知っているなら、BBBがBeagleBoardファミリーのスター的な存在であることをご存じでしょう。BBBはBeagleBone®の小型サイズを受け継ぎ、多くの優れた機能を追加しながら価格を大幅に抑えています。BBGを設計する際、BBBの小型サイズ、豊富なインターフェース、強力な拡張性といった優れた特徴をほぼすべて維持しつつ、HDMIインターフェースを2つのSeeed Groveコネクタに置き換え、Gr...",
+      "depth": 1,
+      "content_length": 903,
+      "timestamp": "2025-09-01 10:53:41",
+      "language": "English"
+    },
+    {
+      "url": "https://wiki.seeedstudio.com/ja/recamera_2002_series/",
+      "title": "reCamera 2002 シリーズ | Seeed Studio Wiki",
+      "content": "[English Introduction] 📄️ クイックスタートガイド reCameraの使い方 📄️ ハードウェアと仕様 これは機能、仕様、ハードウェアインターフェース、および部品リストの概要です。 📄️ 保証 reCamera 保証",
+      "depth": 1,
+      "content_length": 120,
+      "timestamp": "2025-09-01 10:53:42",
+      "language": "English"
+    },
+    {
+      "url": "https://wiki.seeedstudio.com/ja/myactuator_series/",
+      "title": "MyActuator シリーズモーターの入門 | Seeed Studio Wiki",
+      "content": "[English Introduction] この文書は AI によって翻訳されています。内容に不正確な点や改善すべき点がございましたら、文書下部のコメント欄または以下の Issue ページにてご報告ください。 https://github.com/Seeed-Studio/wiki-documents/issues この記事では、MyActuator シリーズモーターの使い方と、Python および ROS を使用して reComputer Mini Jetson Orin で操作する方法を紹介します。 以下は、すべてのモーターモデルのパラメータを記載した完全な表です： RMD-X V4シリーズの命名規則​",
+      "depth": 1,
+      "content_length": 308,
+      "timestamp": "2025-09-01 10:53:43",
+      "language": "English"
+    },
+    {
+      "url": "https://wiki.seeedstudio.com/ja/How_to_Use_SenseCAP_AI_on_SenseCAP_Portal_and_SenseCAP_Mate_APP/",
+      "title": "SenseCAP AIをSenseCAPポータルおよびSenseCAP Mateアプリで使用する方法 | Seeed Studio Wiki",
+      "content": "[中文介绍] この文書は AI によって翻訳されています。内容に不正確な点や改善すべき点がございましたら、文書下部のコメント欄または以下の Issue ページにてご報告ください。 https://github.com/Seeed-Studio/wiki-documents/issues SenseCAP AIは、センサーデータを最大限に活用し、その潜在能力を引き出すためのAI駆動型ソリューションです。SenseCAPセンサーをSenseCAPプラットフォームに接続することで、温度、湿度、光、空気質などの環境要因に関するデータを簡単に収集および分析できます。一方で、強力なAIアルゴリズムがこれらのデータを使用して、運用の最適化、コスト削減、効率向上に役立つ実用的な洞察と推奨事項を提供します。 空気質の監視、作物成長の最適化、効率の向上を目指している場合でも、SenseCAP AIは成功に必要なツールを提供します。SenseCAP AIは現在、SenseCAPポータルおよびSenseCAP Mateアプリでリリースされており、ユーザーはいつでも利用できます。使いやすいプラットフォームとアプリを使用すれば、センサーを迅速に接続し、数分で貴重な洞察を受け取ることができます。 AI駆動型センサーデータ分析の利点を見逃さないでください。今すぐSenseCAP AIをお試しください！ SenseCAP AIは現在、以下の測定項目とデバイスタイプを分析しており、ユーザーは以下の測定項目を含むデバイスを選択できます。 SenseCAP Mate アプリ​",
+      "depth": 1,
+      "content_length": 679,
+      "timestamp": "2025-09-01 10:53:44",
+      "language": "中文"
+    },
+    {
+      "url": "https://wiki.seeedstudio.com/ja/The-Things-Indoor-Gateway/",
+      "title": "The Things Indoor Gateway | Seeed Studio Wiki",
+      "content": "[English Introduction] この文書は AI によって翻訳されています。内容に不正確な点や改善すべき点がございましたら、文書下部のコメント欄または以下の Issue ページにてご報告ください。 https://github.com/Seeed-Studio/wiki-documents/issues The Things Indoor Gateway は、高信頼性、高性能、そしてコストパフォーマンスに優れた The Things Network 製品です。SX1308 をベースにした 8 チャネルの LoRaWAN ゲートウェイで、内蔵の ESP8266 WiFi 接続機能を備えています。複数のバージョンとさまざまな電源プラグが利用可能で、動的なカバレッジを必要とする幅広いアプリケーションに対応します。The Things Network によって設計された IoT ゲートウェイとして、TTN が提供するすべての優れた機能を享受できます。そしてもちろん、このゲートウェイは、世界中の多くの国々に広がり、何百万人もの人々にカバレッジを提供する安全で協力的な IoT ネットワークに接続することができます。多くの人々がコミュニティで利用しているツールが TTN Mapper です。そのため、このゲートウェイを使用して The Network Console に登録し、このネットワークの貢献者の一人になることができます。または、他の TTN ゲートウェイによって構築された公共コミュニティネットワークを利用することも可能です。 The Things Indoor Gateway は LoRaWAN 1.0.3 をサポートしており、他の LoRaWAN センサーとも互換性があります。Seeed Studio は、さまざまな種類の無線環境センシングアプリケーションに焦点を当てた多くのセンサーを提供しています。屋外シナリオで CO2、土壌水分、温度などを測定するセンサーが必要な場合は、SenseCAP センサー が最適な選択肢です。",
+      "depth": 1,
+      "content_length": 881,
+      "timestamp": "2025-09-01 10:53:45",
+      "language": "English"
+    },
+    {
+      "url": "https://wiki.seeedstudio.com/ja/reSpeaker_usb_v3/",
+      "title": "ReSpeaker Lite の使い方 | Seeed Studio Wiki",
+      "content": "[English Introduction] この文書は AI によって翻訳されています。内容に不正確な点や改善すべき点がございましたら、文書下部のコメント欄または以下の Issue ページにてご報告ください。 https://github.com/Seeed-Studio/wiki-documents/issues XMOS XU316 AI サウンドおよびオーディオチップセットを搭載したこの開発ボードは、統合されたデュアルマイクロフォンアレイにより音声認識や音声制御に最適なオーディオ処理を実現します。高度なオンボードオーディオフロントエンドアルゴリズムを備えた XU316 チップは、干渉除去、エコーキャンセル、ノイズ抑制を提供します。I2S および USB 接続をサポートし、Seeed Studio XIAO ESP32S3 (Sense)、Adafruit QT Py、Raspberry Pi、PC と互換性があります。",
+      "depth": 1,
+      "content_length": 419,
+      "timestamp": "2025-09-01 10:53:46",
+      "language": "English"
+    },
+    {
+      "url": "https://wiki.seeedstudio.com/ja/Sensor_Network/",
+      "title": "センサーとセンシング | Seeed Studio Wiki",
+      "content": "[中文介绍] この文書は AI によって翻訳されています。内容に不正確な点や改善すべき点がございましたら、文書下部のコメント欄または以下の Issue ページにてご報告ください。 https://github.com/Seeed-Studio/wiki-documents/issues センシングは、物理世界からデジタル化されたデータを取得するための最初であり、おそらく最も重要なステップです。動的なセンシングフレームワーク内でセンサーと情報インフラを活用することで、社会活動の監視や物理的および自然環境の理解の基盤を築きます。このセンシングプロセスにより、周囲の世界からデータを収集し理解することが可能になります。 このページでは、以下の2つの主要な製品カテゴリを紹介します。 産業用センサーおよびネットワーキングデバイス エントリーレベルのセンサーおよびネットワーキングモジュール 産業用センサーおよびネットワークデバイス​ 産業用センサーおよびプローブ​ 産業用 AI ベースセンサー​",
+      "depth": 1,
+      "content_length": 447,
+      "timestamp": "2025-09-01 10:53:47",
+      "language": "中文"
+    },
+    {
+      "url": "https://wiki.seeedstudio.com/ja/NVIDIA_Jetson/",
+      "title": "NVIDIA® Jetson™ 搭載エッジAIデバイスガイド | Seeed Studio Wiki",
+      "content": "[English Introduction] コミュニティプロジェクト NVIDIA® Jetson™ は、エネルギー効率に優れたモジュールを使用し、エッジで高性能な AI を実現します。Seeed は正規代理店およびエリートパートナーとして、15 年以上のハードウェア経験を活かし、エッジ AI ソリューションを提供します。 NVIDIA Jetson 搭載デバイスの比較についてさらに詳しく Jetpack フラッシュとハードウェアの使用 reComputer Jetson 製品のほとんどには JetPack システムがプリインストールされています。必要に応じて再フラッシュまたは他デバイスへのインストールが可能です。 キャリアボード reComputer Jetson reComputer Industrial reServer Industrial reServer Jetson その他のデバイス reComputer J10x reComputer J20x reComputer J30x/40x reComputer J50x A203 A205 A603 A607 A608 AI 開発ツール データ収集、学習、最適化、デプロイなど、Jetson における AI 開発プロセスをサポートする完全なドキュメントを提供します。 データアップロード＆ラベル AI モデル学習 AI モデル最適化 AI モデル展開 リモート管理 コミュニティプロジェクト コンピュータビジョン reComputerでYOLOv8の学習と展開 YOLOv5とRoboflowを使った少数ショット物体検出 TensorRTとDeepStreamを使ったYOLOv8の展開 Maskcam - 群衆のマスク使用状況監視 reServer JetsonによるAI NVR reComputer(NVIDIA Jetson)デバイスでFrigateを展開 reComputerでYOLOv10を素早く体験 Ultralytics YOLOv8のワンクリック簡単展開 生成 AI reComputerでLlama-...",
+      "depth": 1,
+      "content_length": 903,
+      "timestamp": "2025-09-01 10:53:49",
+      "language": "English"
+    },
+    {
+      "url": "https://wiki.seeedstudio.com/ja/ja_About/",
+      "title": "Seeedについて | Seeed Studio Wiki",
+      "content": "[中文介绍] Seeedは、アイデアを差別化された製品へと成長させるためのハードウェアイノベーションプラットフォームです。規模を問わず技術提供者と密接に連携することで、Seeedは品質、スピード、そしてサプライチェーンの知識を備えたアクセス可能な技術を提供します。プロトタイプが反復可能な状態になった際には、Seeedは社内のエンジニアリング、サプライチェーン管理、アジャイル製造力を活用して1個から1,000個までの製品化を支援します。また、Seeedはインキュベーター、中国の技術エコシステム、投資家、流通チャネルと協力し、Makerスタートアップを次のステージへと導きます。 技術サポートと製品に関するディスカッション​ 弊社製品をお選びいただきありがとうございます！皆様が弊社製品をスムーズにご利用いただけるよう、さまざまなサポートを提供しております。異なる好みやニーズに対応するため、いくつかのコミュニケーションチャネルをご用意しています。",
+      "depth": 1,
+      "content_length": 425,
+      "timestamp": "2025-09-01 10:53:50",
+      "language": "中文"
+    },
+    {
+      "url": "https://wiki.seeedstudio.com/ja/License/",
+      "title": "ライセンス | Seeed Studio Wiki",
+      "content": "[中文介绍] 重要なお知らせおよび免責事項​ 本書に記載されている回路、ソフトウェア、その他関連情報の説明は、半導体製品の動作および応用例を説明するためだけに提供されています。これらの回路、ソフトウェア、および情報をお客様の機器設計に組み込む責任はお客様にあります。Seeed Studio は、これらの回路、ソフトウェア、または情報の使用に起因してお客様または第三者が被る損失について一切責任を負いません。 Seeed Studio は、本書の情報を準備するにあたり合理的な注意を払っていますが、これらの情報がエラーがないことを保証するものではありません。Seeed Studio は、本書に含まれる情報のエラーまたは記載漏れに起因してお客様が被る損害について一切責任を負いません。 Seeed Studio は、Seeed Studio 製品または本書に記載された技術情報の使用に起因して、第三者の特許、著作権、その他の知的財産権を侵害する責任を一切負いません。また、明示的、黙示的、その他いかなる形でも、Seeed Studio または他者の特許、著作権、その他の知的財産権に基づくライセンスを付与するものではありません。 お客様は、Seeed Studio 製品を全体または一部において改変、変更、複製、またはその他の不正利用を行ってはなりません。Seeed Studio は、これらの改変、変更、複製、または不正利用に起因してお客様または第三者が被る損失について一切責任を負いません。 Seeed Studio 製品は、以下の2つの品質グレードに分類されています：「標準」と「高品質」。各 Seeed Studio 製品の推奨用途は、その品質グレードに基づいて以下の通りです。 「標準」：コンピュータ、オフィス機器、通信機器、試験および測定機器、音響および映像機器、家庭用電子機器、工作機械、個人用電子機器、産業用ロボットなど。",
+      "depth": 1,
+      "content_length": 819,
+      "timestamp": "2025-09-01 10:53:51",
+      "language": "中文"
+    },
+    {
+      "url": "https://wiki.seeedstudio.com/ja/Edgebox-ESP-100-Arduino/",
+      "title": "EdgeBox-ESP-100 Arduinoでの始め方 | Seeed Studio Wiki",
+      "content": "[中文介绍] この文書は AI によって翻訳されています。内容に不正確な点や改善すべき点がございましたら、文書下部のコメント欄または以下の Issue ページにてご報告ください。 https://github.com/Seeed-Studio/wiki-documents/issues Edgebox-ESP-100​ EdgeBox-ESP-100は、軽量な自動化ソリューション向けに設計されたESP32ベースのコントローラーです。アナログ入力をサポートし、リモート環境での効果的な監視と制御が可能で、PID制御ループ、論理シーケンス制御、または柔軟な無線およびフィールドセンサー拡張を備えたゲートウェイに最適です。 EdgeBox-ESP-100のほかにも、Raspberry Piを搭載したエッジファミリーの他の2つのエッジ製品があり、異なるソリューションに対応しています。違いを深く理解し、プロジェクトに最適な製品を選択するために、Seeed StudioのEdgeシリーズページをご参照ください。 この製品は、絶縁されたCAN、RS485フィールドバス接続、および豊富なIOリソースを提供し、デジタルおよびアナログ信号の両方に対応する広範な施設やセンサー入力に対応します。PLCおよびフィールド自動化アプリケーションに完全に適しています。 オンチップWi-FiおよびBLE機能を備え、さらに4G LTEモジュールセルラーを含むため、EdgeBox-ESP-100は産業用ゲートウェイとして利用でき、従来のPLCをネットワークやクラウドに接続することが可能です。 このポータブルボックスは、堅牢なハードウェア、電気設計、およびアルミニウム合金製の筐体を備えており、広い温度範囲で機能を維持し、高いサージおよび短絡保護を提供します。これにより、ビジネスに基づいた多様な展開方法が可能です。",
+      "depth": 1,
+      "content_length": 798,
+      "timestamp": "2025-09-01 10:53:52",
+      "language": "中文"
+    },
+    {
+      "url": "https://wiki.seeedstudio.com/ja/sensecraft_ai_main/",
+      "title": "SenseCraft AI 概要 | Seeed Studio Wiki",
+      "content": "[English Introduction] この文書は AI によって翻訳されています。内容に不正確な点や改善すべき点がございましたら、文書下部のコメント欄または以下の Issue ページにてご報告ください。 https://github.com/Seeed-Studio/wiki-documents/issues 概要セクションでは、SenseCraft AI の目的、主な特徴、および利点についての高レベルな紹介を提供します。このセクションは、プラットフォームとその機能を理解するための出発点として機能します。また、SenseCraft AI を迅速に利用開始するための「はじめに」ガイドや FAQ へのリンクも含まれています。 事前学習済みモデルセクションでは、SenseCraft AI がサポートするさまざまなデバイスで展開可能な、すぐに利用できるモデルに関する情報を提供します。これらのモデルは特定のハードウェア向けに最適化されており、カスタムトレーニングを必要とせずにさまざまなアプリケーションで使用できます。このセクションは、サポートされているデバイスに基づいてさらにサブセクションに分かれています： トレーニングセクションは、SenseCraft AI を使用してカスタムモデルを作成するプロセスをユーザーに案内することを目的としています。このセクションは以下の2つの主要なサブセクションに分かれています：",
+      "depth": 1,
+      "content_length": 614,
+      "timestamp": "2025-09-01 10:53:53",
+      "language": "English"
+    },
+    {
+      "url": "https://wiki.seeedstudio.com/ja/Cloud_Chain/SenseCAP_Portal/QuickStart/",
+      "title": "SenseCAP ポータル クイックスタート | Seeed Studio Wiki",
+      "content": "[English Introduction] この文書は AI によって翻訳されています。内容に不正確な点や改善すべき点がございましたら、文書下部のコメント欄または以下の Issue ページにてご報告ください。 https://github.com/Seeed-Studio/wiki-documents/issues SenseCAP ポータルをどのように使用しますか？さあ、始めましょう！ SenseCAP ポータルの主な機能は、SenseCAP デバイスの管理とデータの保存です。このポータルは、Microsoft の安全で信頼性の高いクラウドサービスである Azure 上に構築されています。アカウントを申請し、すべてのデバイスをこのアカウントに紐付けることができます。SenseCAP はウェブポータルと API を提供しています。ウェブポータルには、ダッシュボード、デバイス管理、データ管理、アクセスキー管理が含まれ、API はさらなる開発のためにユーザーに公開されています。 新しいアカウントを作成する​ ① アカウント登録を選択し、メール情報を入力して「登録」をクリックします。登録メールがユーザーのメールボックスに送信されます。",
+      "depth": 1,
+      "content_length": 523,
+      "timestamp": "2025-09-01 10:53:54",
+      "language": "English"
+    },
+    {
+      "url": "https://wiki.seeedstudio.com/ja/M2_Kit_Getting_Started/",
+      "title": "SenseCAP LoRaWAN スターターキットで始める | Seeed Studio Wiki",
+      "content": "[English Introduction] この文書は AI によって翻訳されています。内容に不正確な点や改善すべき点がございましたら、文書下部のコメント欄または以下の Issue ページにてご報告ください。 https://github.com/Seeed-Studio/wiki-documents/issues LoRaWAN の基本​ LoRaWAN（Long Range Wide Area Network）は、IoT（モノのインターネット）アプリケーション向けに特別に設計された低消費電力・長距離のワイヤレス通信プロトコルです。IoTデバイスに対して長距離かつ低消費電力の通信能力を提供します。LoRaWAN の主な特徴は以下の通りです： これらの特性により、スマート農業、スマートシティ、環境モニタリングなどのワイヤレスセンシングアプリケーションで広く利用されています。 LoRaWAN についてさらに詳しく知りたい方は、こちらをクリックしてください。 SenseCAP LoRaWAN スターターキット​ SenseCAP LoRaWAN スターターキットは、ユーザーがLoRaWANに関する実践的な知識を迅速に習得し、応用できるようにすることを目的としています。このキットには、NM2マルチプラットフォームゲートウェイ、XIAOS3、Grove Wio-E5、温湿度センサー、土壌水分センサー、その他の拡張可能なGroveが含まれており、ユーザーがLoRaWANアーキテクチャを実際に学び、自分自身のプロジェクトをさらに開発することを可能にします。 このLoRaWANスターターキットは、ノード、ゲートウェイ、さらにはSenseCAPクラウドプラットフォームを含むLoRaWANアーキテクチャのすべてのコンポーネントを備えています。このキットは、LoRaWAN技術を完全に体験できる包括的な機能を提供します。このキットを使用することで、距離テスト、ネットワークテスト、プロジェクト開発など、さまざまな実践的な活動に参加できます。実際のアプリケーションを通じてその性能と機能を検証す...",
+      "depth": 1,
+      "content_length": 903,
+      "timestamp": "2025-09-01 10:53:55",
+      "language": "English"
+    },
+    {
+      "url": "https://wiki.seeedstudio.com/ja/xiao_075inch_epaper_panel/",
+      "title": "Home Assistant における ePaper パネル | Seeed Studio Wiki",
+      "content": "[English Introduction] この文書は AI によって翻訳されています。内容に不正確な点や改善すべき点がございましたら、文書下部のコメント欄または以下の Issue ページにてご報告ください。 https://github.com/Seeed-Studio/wiki-documents/issues XIAO ESP32C3 搭載の 7.5 インチ E-Ink ディスプレイは、Home Assistant データを表示するためのコンパクトで省エネルギーなソリューションです。シームレスな統合と鮮明なビジュアルを備え、スマートホームに最適です。また、Arduino にも対応しており、簡単にカスタマイズ可能です。低消費電力で、どのような光環境でも優れた視認性を提供します。この多用途なディスプレイでスマートホームのセットアップを簡素化しましょう。 Home Assistant での使用方法​",
+      "depth": 1,
+      "content_length": 406,
+      "timestamp": "2025-09-01 10:53:56",
+      "language": "English"
+    },
+    {
+      "url": "https://wiki.seeedstudio.com/ja/reServer-Getting-Started/",
+      "title": "reServer X86 の使い方 | Seeed Studio Wiki",
+      "content": "[English Introduction] この文書は AI によって翻訳されています。内容に不正確な点や改善すべき点がございましたら、文書下部のコメント欄または以下の Issue ページにてご報告ください。 https://github.com/Seeed-Studio/wiki-documents/issues reServer は、reThingsファミリーのマイルストーン製品として、非常にコンパクトで強力なスマートサーバーです。この小型サーバーは、エッジからクラウドまで簡単かつ効率的に動作することができます。 reServer は ODYSSEY X86 v2 ボードをベースにしており、最新の Intel® Core™ 第11世代プロセッサと Intel® UHD Graphics または Intel® Iris Xe Graphics によって駆動されます。これにより、さまざまなアプリケーションにおいて高いCPUおよびAI性能を発揮します。2つの高速2.5ギガビットイーサネットポートを備え、5G、LoRa、BLE、WiFiを含むハイブリッド接続をサポートします。同時に、reServer はコンパクトな設計で、ほぼすべてのシナリオで効率的に動作します。また、reServer の整然とした構造により、ハードドライブ、メモリ、PCIeスロットへのアクセスが簡単で、インストール、アップグレード、メンテナンスが容易です。 デュアルSATA III 6.0Gbpsデータコネクタを備えたreServer は、最大2つの3.5インチ/2.5インチSATA内部ハードディスクドライブを装備して、より多くのストレージを確保できます。また、M.2コネクタを備えており、より高速な読み書き速度を実現するためにさまざまなSSDを接続できます。",
+      "depth": 1,
+      "content_length": 775,
+      "timestamp": "2025-09-01 10:53:58",
+      "language": "English"
     }
   ]
 }

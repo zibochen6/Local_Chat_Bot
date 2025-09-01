@@ -759,8 +759,82 @@ class OptimizedWikiScraper:
         
         return self.all_content
     
+    def run_continuous_monitor(self):
+        """持续运行监控模式 - 检查新页面并定时更新"""
+        print("🔄 启动持续监控模式")
+        print("📊 功能说明:")
+        print("   - 实时检查新页面并更新到本地")
+        print("   - 每天凌晨12点自动进行完整数据库更新")
+        print("   - 按 Ctrl+C 停止监控")
+        
+        def daily_update_job():
+            print(f"\n⏰ 执行每日定时更新任务 - {datetime.now()}")
+            try:
+                print("🔄 开始每日完整更新...")
+                self.run_incremental_update()
+                print("✅ 每日更新完成")
+            except Exception as e:
+                print(f"❌ 每日更新失败: {str(e)}")
+        
+        def continuous_check_job():
+            """持续检查新页面的任务"""
+            try:
+                print(f"\n🔍 执行持续检查任务 - {datetime.now()}")
+                self.run_quick_check()
+            except Exception as e:
+                print(f"❌ 持续检查失败: {str(e)}")
+        
+        # 设置定时任务
+        schedule.every().day.at("00:00").do(daily_update_job)  # 每天凌晨12点
+        schedule.every(30).minutes.do(continuous_check_job)    # 每30分钟检查一次
+        
+        print("⏰ 定时任务设置:")
+        print("   - 每日凌晨 00:00: 完整数据库更新")
+        print("   - 每 30 分钟: 快速检查新页面")
+        
+        try:
+            while True:
+                schedule.run_pending()
+                time.sleep(60)  # 每分钟检查一次定时任务
+        except KeyboardInterrupt:
+            print("\n⏹️ 持续监控已停止")
+    
+    def run_quick_check(self):
+        """快速检查新页面（不进行深度爬取）"""
+        print("🔍 快速检查新页面...")
+        
+        # 获取主页面的链接
+        try:
+            response = self.session.get(self.base_url, timeout=10)
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.content, 'html.parser')
+                new_links = self.extract_links_from_page(soup, self.base_url)
+                
+                # 检查是否有新页面
+                new_pages_found = 0
+                for link in new_links:
+                    if link not in self.url_hashes:
+                        # 发现新页面，立即爬取
+                        print(f"🆕 发现新页面: {link}")
+                        try:
+                            self.scrape_page(link, 0)
+                            new_pages_found += 1
+                        except Exception as e:
+                            print(f"⚠️ 爬取新页面失败: {str(e)}")
+                
+                if new_pages_found > 0:
+                    print(f"✅ 快速检查完成，发现并爬取了 {new_pages_found} 个新页面")
+                    # 保存更新
+                    self.save_embeddings_and_index()
+                else:
+                    print("✅ 快速检查完成，没有发现新页面")
+            else:
+                print(f"⚠️ 无法访问主页: {response.status_code}")
+        except Exception as e:
+            print(f"❌ 快速检查失败: {str(e)}")
+    
     def schedule_daily_update(self):
-        """设置每日定时更新"""
+        """设置每日定时更新（兼容旧版本）"""
         def daily_update_job():
             print(f"\n⏰ 执行定时更新任务 - {datetime.now()}")
             try:
@@ -786,9 +860,11 @@ def main():
     import argparse
     
     parser = argparse.ArgumentParser(description='Seeed Wiki 爬虫')
-    parser.add_argument('--mode', choices=['full', 'incremental', 'schedule'], 
+    parser.add_argument('--mode', choices=['full', 'incremental', 'schedule', 'monitor'], 
                        default='incremental', help='运行模式')
     parser.add_argument('--force', action='store_true', help='强制完整爬取')
+    parser.add_argument('--check-interval', type=int, default=30, 
+                       help='监控模式下的检查间隔（分钟）')
     
     args = parser.parse_args()
     
@@ -799,6 +875,8 @@ def main():
             scraper.run_full_crawl()
         elif args.mode == 'schedule':
             scraper.schedule_daily_update()
+        elif args.mode == 'monitor':
+            scraper.run_continuous_monitor()
         else:
             scraper.run_incremental_update()
     except KeyboardInterrupt:
