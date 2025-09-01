@@ -1,0 +1,9 @@
+requests>=2.25.1
+beautifulsoup4>=4.9.3
+lxml>=4.6.3
+langdetect>=1.0.9
+faiss-cpu>=1.7.0
+numpy>=1.21.0
+googletrans==4.0.0rc1
+pickle5>=0.0.11
+ollama>=0.1.0
