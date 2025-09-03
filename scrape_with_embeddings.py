@@ -136,9 +136,14 @@ class OptimizedWikiScraper:
         with open(self.last_update_file, 'w', encoding='utf-8') as f:
             json.dump(update_info, f, ensure_ascii=False, indent=2)
     
-    def should_update(self):
+    def should_update(self, force_check=False):
         """检查是否需要更新（24小时检查一次）"""
+        if force_check:
+            print("🔧 强制检查模式：忽略24小时限制")
+            return True
+            
         if not os.path.exists(self.last_update_file):
+            print("📂 未找到更新记录，需要完整检查")
             return True
         
         try:
@@ -148,11 +153,20 @@ class OptimizedWikiScraper:
                 if last_update_str:
                     last_update = datetime.fromisoformat(last_update_str)
                     time_diff = datetime.now() - last_update
-                    return time_diff.total_seconds() >= 24 * 3600  # 24小时
+                    hours_diff = time_diff.total_seconds() / 3600
+                    
+                    if hours_diff >= 24:
+                        print(f"⏰ 距离上次更新已超过24小时 ({hours_diff:.1f} 小时)，需要更新")
+                        return True
+                    else:
+                        print(f"⏰ 距离上次更新不足24小时 ({hours_diff:.1f} 小时)，跳过更新")
+                        return False
+                else:
+                    print("⚠️ 更新记录不完整，需要检查")
+                    return True
         except Exception as e:
             print(f"⚠️ 检查更新时间失败: {str(e)}")
-        
-        return True
+            return True
     
     def check_ollama_service(self):
         """检查 Ollama 服务状态"""
@@ -618,7 +632,7 @@ class OptimizedWikiScraper:
         print(f"💡 现在可以使用优化版问答系统了")
         print(f"🚀 启动命令: python optimized_qa.py")
     
-    def run_incremental_update(self):
+    def run_incremental_update(self, force_check=False):
         """运行增量更新"""
         print("🔄 开始增量更新 Seeed Studio Wiki")
         print(f"基础 URL: {self.base_url}")
@@ -626,8 +640,9 @@ class OptimizedWikiScraper:
         print(f"Embedding 模型: {self.embedding_model}")
         
         # 检查是否需要更新
-        if not self.should_update():
+        if not self.should_update(force_check):
             print("⏰ 距离上次更新未满24小时，跳过更新")
+            print("💡 如需强制更新，请使用 --force-check 参数")
             return
         
         # 发现初始链接
@@ -863,7 +878,8 @@ def main():
     parser.add_argument('--mode', choices=['full', 'incremental', 'schedule', 'monitor'], 
                        default='incremental', help='运行模式')
     parser.add_argument('--force', action='store_true', help='强制完整爬取')
-    parser.add_argument('--check-interval', type=int, default=30, 
+    parser.add_argument('--force-check', action='store_true', help='强制检查更新（忽略24小时限制）')
+    parser.add_argument('--check-interval', type=int, default=60, 
                        help='监控模式下的检查间隔（分钟）')
     
     args = parser.parse_args()
@@ -878,7 +894,7 @@ def main():
         elif args.mode == 'monitor':
             scraper.run_continuous_monitor()
         else:
-            scraper.run_incremental_update()
+            scraper.run_incremental_update(force_check=args.force_check)
     except KeyboardInterrupt:
         print("\n\n⚠️ 用户中断爬取")
         if scraper.all_content:

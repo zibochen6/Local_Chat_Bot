@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>产品展示系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #212121;
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+            margin: 0;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            position: relative;
+        }
+        
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+        
+        .header p {
+            font-size: 1.3rem;
+            opacity: 0.8;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .language-switcher {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .lang-btn {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .lang-btn:hover {
+            background: rgba(255,255,255,0.15);
+            border-color: rgba(255,255,255,0.3);
+            transform: translateY(-1px);
+        }
+        
+        .lang-btn.active {
+            background: #00ff88;
+            color: #212121;
+            border-color: #00ff88;
+            font-weight: 600;
+        }
+        
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .product-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+        
+        .product-card h3 {
+            color: #333;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .product-card p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .product-features {
+            list-style: none;
+            margin-bottom: 20px;
+        }
+        
+        .product-features li {
+            background: #f8f9fa;
+            padding: 8px 15px;
+            margin-bottom: 8px;
+            border-radius: 20px;
+            color: #555;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+        
+        .product-id {
+            background: #667eea;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        
+        .instructions {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 25px;
+            color: white;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        .instructions h2 {
+            margin-bottom: 15px;
+            font-size: 1.8rem;
+        }
+        
+        .instructions ol {
+            text-align: left;
+            max-width: 500px;
+            margin: 0 auto;
+            line-height: 2;
+        }
+        
+        .instructions li {
+            margin-bottom: 10px;
+        }
+        
+        .highlight {
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .products-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .product-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="language-switcher">
+                <a href="#" onclick="updateLanguage('zh')" class="lang-btn {% if language == 'zh' %}active{% endif %}">🇨🇳 中文</a>
+                <a href="#" onclick="updateLanguage('en')" class="lang-btn {% if language == 'en' %}active{% endif %}">🇺🇸 English</a>
+            </div>
+            <h1>🎯 产品展示系统</h1>
+            <p>{% if language == 'zh' %}通过NFC触碰产品卡片，获取智能讲解{% else %}Get AI explanations by touching product NFC cards{% endif %}</p>
+        </div>
+        
+        <div class="products-grid">
+            {% for product_id, product in products.items() %}
+            <div class="product-card" onclick="window.location.href='/product/{{ product_id }}'">
+                <h3>
+                    {% if language == 'zh' %}
+                        {{ product.name }}
+                    {% else %}
+                        {% if product.name_en %}
+                            {{ product.name_en }}
+                        {% else %}
+                            {{ product.name }}
+                        {% endif %}
+                    {% endif %}
+                </h3>
+                <p>
+                    {% if language == 'zh' %}
+                        {{ product.description[:100] }}{% if product.description|length > 100 %}...{% endif %}
+                    {% else %}
+                        {% if product.description_en %}
+                            {{ product.description_en[:100] }}{% if product.description_en|length > 100 %}...{% endif %}
+                        {% else %}
+                            {{ product.description[:100] }}{% if product.description|length > 100 %}...{% endif %}
+                        {% endif %}
+                    {% endif %}
+                </p>
+                
+                <ul class="product-features">
+                    {% if language == 'zh' %}
+                        {% for feature in product.features[:3] %}
+                        <li>{{ feature }}</li>
+                        {% endfor %}
+                    {% else %}
+                        {% if product.features_en %}
+                            {% for feature in product.features_en[:3] %}
+                            <li>{{ feature }}</li>
+                            {% endfor %}
+                        {% else %}
+                            {% for feature in product.features[:3] %}
+                            <li>{{ feature }}</li>
+                            {% endfor %}
+                        {% endif %}
+                    {% endif %}
+                </ul>
+                
+                <div class="product-id">{% if language == 'zh' %}产品ID{% else %}Product ID{% endif %}: {{ product_id }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="instructions">
+            <h2>📱 {% if language == 'zh' %}使用说明{% else %}Instructions{% endif %}</h2>
+            <ol>
+                {% if language == 'zh' %}
+                <li>用手机<span class="highlight">触碰</span>产品NFC卡片</li>
+                <li>手机自动打开产品页面</li>
+                <li>点击<span class="highlight">获取讲解</span>按钮</li>
+                <li>系统生成AI产品讲解</li>
+                <li>无需下载任何应用！</li>
+                {% else %}
+                <li>Touch the product NFC card with your phone</li>
+                <li>Phone automatically opens the product page</li>
+                <li>Click the <span class="highlight">Get Explanation</span> button</li>
+                <li>System generates AI product explanation</li>
+                <li>No app download required!</li>
+                {% endif %}
+            </ol>
+        </div>
+    </div>
+    
+    <script>
+        // 添加点击效果
+        document.querySelectorAll('.product-card').forEach(card => {
+            card.addEventListener('click', function() {
+                this.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    this.style.transform = '';
+                }, 150);
+            });
+        });
+        
+        // 语言切换函数
+        function updateLanguage(lang) {
+            // 设置语言到session
+            fetch(`/switch_language/${lang}`)
+                .then(() => {
+                    // 重新加载页面以更新所有文本
+                    window.location.reload();
+                })
+                .catch(error => {
+                    console.error('语言切换失败:', error);
+                });
+        }
+        
+        // 页面加载动画
+        window.addEventListener('load', function() {
+            document.querySelectorAll('.product-card').forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+    </script>
+</body>
+</html>

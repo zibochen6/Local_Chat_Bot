@@ -1,7 +1,7 @@
 {
   "metadata": {
     "total_pages": 4079,
-    "total_vectors": 21,
+    "total_vectors": 4079,
     "vector_dimension": 768,
     "crawl_time": "2025-09-01 10:53:58",
     "base_url": "https://wiki.seeedstudio.com",
@@ -13,7 +13,8 @@
       "中文",
       "English"
     ],
-    "last_update": "2025-09-01T10:53:58.802819"
+    "last_update": "2025-09-01T12:17:05.014536",
+    "rebuild_time": "2025-09-01T12:17:05.014570"
   },
   "pages": [
     {
