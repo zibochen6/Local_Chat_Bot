@@ -19,9 +19,7 @@ import hashlib
 from functools import lru_cache
 from concurrent.futures import ThreadPoolExecutor
 import threading
-import subprocess
-import tempfile
-import os
+
 
 class OptimizedQASystem:
     def __init__(self):
@@ -40,13 +38,7 @@ class OptimizedQASystem:
         self.streaming_enabled = True  # 是否启用流式显示
         self.typing_speed = 0.03  # 打字速度（秒/字符）
         
-        # 文本转语音相关
-        self.tts_enabled = True  # 是否启用TTS（默认启用）
-        self.tts_voice = "zh"  # 语音类型：zh(中文), en(英文)
-        self.tts_speed = 1.0  # 语音速度
-        self.tts_save_to_file = True  # 是否保存到文件
-        self.tts_output_dir = "./audio_output"  # 音频输出目录
-        self.tts_format = "wav"  # 音频格式：wav, mp3
+
         
         # 设置 readline 配置
         self.setup_readline()
@@ -57,8 +49,7 @@ class OptimizedQASystem:
         # 检查 Ollama 服务
         self.check_ollama_service()
         
-        # 检查 TTS 工具
-        self.check_tts_availability()
+
         
         # 初始化系统
         self.initialize_system()
@@ -132,7 +123,8 @@ class OptimizedQASystem:
             print(f"✅ Ollama 服务正常，可用模型: {len(models['models'])} 个")
             
             model_names = [model['name'] for model in models['models']]
-            if 'nomic-embed-text' not in model_names:
+            print(model_names)
+            if 'nomic-embed-text:latest' not in model_names:
                 print("⚠️  未找到 nomic-embed-text 模型，正在安装...")
                 ollama.pull('nomic-embed-text')
                 print("✅ nomic-embed-text 模型安装完成")
@@ -147,42 +139,79 @@ class OptimizedQASystem:
         """初始化系统"""
         print("🚀 正在初始化优化问答系统...")
         
-        # 加载 FAISS 索引
-        print("🔍 加载 FAISS 索引...")
-        self.faiss_index = faiss.read_index("./data_base/faiss_index.bin")
-        print(f"✅ FAISS 索引加载完成: {self.faiss_index.ntotal} 个向量")
-        
-        # 加载向量元数据
-        print("📊 加载向量元数据...")
-        with open("./data_base/faiss_metadata.pkl", 'rb') as f:
-            self.faiss_metadata = pickle.load(f)
-        print(f"✅ 元数据加载完成: {len(self.faiss_metadata)} 条记录")
-        
-        # 加载 Wiki 页面数据
-        print("📚 加载 Wiki 页面数据...")
-        with open("./data_base/seeed_wiki_embeddings_db.json", 'r', encoding='utf-8') as f:
-            data = json.load(f)
-            self.wiki_pages = data['pages']
-            self.metadata = data['metadata']
-        print(f"✅ 页面数据加载完成: {len(self.wiki_pages)} 个页面")
-        
-        # 测试 Embedding 模型
-        print("🤖 测试 Embedding 模型...")
         try:
+            # 加载 FAISS 索引
+            print("🔍 加载 FAISS 索引...")
+            if not os.path.exists("./data_base/faiss_index.bin"):
+                raise FileNotFoundError("FAISS 索引文件不存在")
+                
+            self.faiss_index = faiss.read_index("./data_base/faiss_index.bin")
+            if self.faiss_index is None:
+                raise Exception("FAISS 索引加载失败")
+                
+            print(f"✅ FAISS 索引加载完成: {self.faiss_index.ntotal} 个向量")
+            print(f"   索引维度: {self.faiss_index.d}")
+            print(f"   索引类型: {type(self.faiss_index).__name__}")
+            
+            # 加载向量元数据
+            print("📊 加载向量元数据...")
+            if not os.path.exists("./data_base/faiss_metadata.pkl"):
+                raise FileNotFoundError("元数据文件不存在")
+                
+            with open("./data_base/faiss_metadata.pkl", 'rb') as f:
+                self.faiss_metadata = pickle.load(f)
+            
+            if not self.faiss_metadata or len(self.faiss_metadata) == 0:
+                raise Exception("元数据为空")
+                
+            print(f"✅ 元数据加载完成: {len(self.faiss_metadata)} 条记录")
+            
+            # 检查索引和元数据的一致性
+            if self.faiss_index.ntotal != len(self.faiss_metadata):
+                print(f"⚠️  警告: 索引向量数({self.faiss_index.ntotal})与元数据记录数({len(self.faiss_metadata)})不匹配")
+            
+            # 加载 Wiki 页面数据
+            print("📚 加载 Wiki 页面数据...")
+            if not os.path.exists("./data_base/seeed_wiki_embeddings_db.json"):
+                raise FileNotFoundError("Wiki 页面数据文件不存在")
+                
+            with open("./data_base/seeed_wiki_embeddings_db.json", 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                self.wiki_pages = data['pages']
+                self.metadata = data['metadata']
+            
+            if not self.wiki_pages or len(self.wiki_pages) == 0:
+                raise Exception("Wiki 页面数据为空")
+                
+            print(f"✅ 页面数据加载完成: {len(self.wiki_pages)} 个页面")
+            
+            # 检查页面数据和元数据的一致性
+            if len(self.wiki_pages) != len(self.faiss_metadata):
+                print(f"⚠️  警告: 页面数据数({len(self.wiki_pages)})与元数据记录数({len(self.faiss_metadata)})不匹配")
+            
+            # 测试 Embedding 模型
+            print("🤖 测试 Embedding 模型...")
             test_embedding = self.generate_embedding("test")
-            if test_embedding is not None:
-                print(f"✅ Embedding 模型测试成功: {len(test_embedding)} 维")
-            else:
+            if test_embedding is None:
                 raise Exception("Embedding 生成失败")
+                
+            # 检查 embedding 维度是否与索引匹配
+            if test_embedding.shape[0] != self.faiss_index.d:
+                raise Exception(f"Embedding 维度({test_embedding.shape[0]})与索引维度({self.faiss_index.d})不匹配")
+                
+            print(f"✅ Embedding 模型测试成功: {len(test_embedding)} 维")
+            
+            print("🎉 系统初始化完成！")
+            self.show_system_info()
+            
+            # 加载缓存
+            self.load_cache()
+            
         except Exception as e:
-            print(f"❌ Embedding 模型测试失败: {str(e)}")
+            print(f"❌ 系统初始化失败: {str(e)}")
+            import traceback
+            traceback.print_exc()
             raise
-        
-        print("🎉 系统初始化完成！")
-        self.show_system_info()
-        
-        # 加载缓存
-        self.load_cache()
     
     def show_system_info(self):
         """显示系统信息"""
@@ -197,24 +226,7 @@ class OptimizedQASystem:
         print(f"   缓存状态: Embedding缓存 {len(self.embedding_cache)} 项，回答缓存已禁用")
         print(f"   流式显示: {'启用' if self.streaming_enabled else '禁用'}")
         print(f"   打字速度: {self.typing_speed:.3f} 秒/字符")
-        print(f"   语音合成: {'启用' if self.tts_enabled else '禁用'}")
-        print(f"   语音类型: {self.tts_voice}")
-        print(f"   语音速度: {self.tts_speed:.1f}x")
-        print(f"   音频格式: {self.tts_format}")
-        print(f"   输出目录: {self.tts_output_dir}")
-        
-        # 显示音频文件统计
-        try:
-            if os.path.exists(self.tts_output_dir):
-                files = os.listdir(self.tts_output_dir)
-                audio_files = [f for f in files if f.endswith(('.wav', '.mp3'))]
-                total_size = sum(os.path.getsize(os.path.join(self.tts_output_dir, f)) 
-                               for f in audio_files if os.path.isfile(os.path.join(self.tts_output_dir, f)))
-                print(f"   音频文件: {len(audio_files)} 个，总大小: {total_size} 字节")
-            else:
-                print(f"   音频文件: 0 个")
-        except Exception:
-            print(f"   音频文件: 无法统计")
+
     
     def load_cache(self):
         """加载缓存数据"""
@@ -279,182 +291,64 @@ class OptimizedQASystem:
         print()  # 换行
         return full_answer
     
-    def text_to_speech(self, text, language="zh"):
-        """文本转语音功能（保存到文件）"""
-        if not self.tts_enabled:
-            print("🔇 TTS功能已禁用")
-            return
-        
-        try:
-            # 清理文本，移除特殊字符
-            clean_text = re.sub(r'[^\w\s\u4e00-\u9fff，。！？；：""''（）【】]', '', text)
-            if len(clean_text.strip()) == 0:
-                print("⚠️  文本内容为空，跳过TTS")
-                return
-            
-            print(f"🔊 正在生成语音文件...")
-            
-            # 确保输出目录存在
-            os.makedirs(self.tts_output_dir, exist_ok=True)
-            
-            # 生成文件名（基于时间戳和内容哈希）
-            timestamp = int(time.time())
-            text_hash = hashlib.md5(clean_text.encode('utf-8')).hexdigest()[:8]
-            filename = f"tts_{timestamp}_{text_hash}.{self.tts_format}"
-            filepath = os.path.join(self.tts_output_dir, filename)
-            
-            # 使用espeak进行TTS并保存到文件
-            if language == "zh":
-                # 中文语音
-                cmd = [
-                    "espeak", 
-                    "-v", "zh",  # 中文语音
-                    "-s", str(int(150 * self.tts_speed)),  # 语速
-                    "-a", "100",  # 音量
-                    "-w", filepath,  # 输出到文件
-                    clean_text
-                ]
-            else:
-                # 英文语音
-                cmd = [
-                    "espeak", 
-                    "-v", "en",  # 英文语音
-                    "-s", str(int(150 * self.tts_speed)),  # 语速
-                    "-a", "100",  # 音量
-                    "-w", filepath,  # 输出到文件
-                    clean_text
-                ]
-            
-            # 执行TTS
-            result = subprocess.run(cmd, check=True, capture_output=True, text=True)
-            
-            # 检查文件是否生成成功
-            if os.path.exists(filepath):
-                file_size = os.path.getsize(filepath)
-                if file_size > 0:
-                    print(f"✅ 语音文件生成完成: {filename}")
-                    print(f"📁 文件路径: {filepath}")
-                    print(f"📊 文件大小: {file_size} 字节")
-                else:
-                    print("⚠️  语音文件生成失败：文件大小为0")
-            else:
-                print("⚠️  语音文件生成失败：文件不存在")
-            
-        except subprocess.CalledProcessError as e:
-            print(f"⚠️  TTS生成失败: {str(e)}")
-            print(f"📤 返回码: {e.returncode}")
-            print(f"📤 标准输出: {e.stdout}")
-            print(f"⚠️  错误输出: {e.stderr}")
-            print("💡 请确保已安装espeak: sudo apt-get install espeak")
-        except FileNotFoundError:
-            print("⚠️  未找到espeak，请安装: sudo apt-get install espeak")
-        except Exception as e:
-            print(f"⚠️  TTS错误: {str(e)}")
-            import traceback
-            traceback.print_exc()
+
     
-    def check_tts_availability(self):
-        """检查TTS工具是否可用"""
-        try:
-            result = subprocess.run(["espeak", "--version"], 
-                                  capture_output=True, text=True, timeout=5)
-            if result.returncode == 0:
-                print("✅ TTS工具(espeak)可用")
-                return True
-            else:
-                print("⚠️  TTS工具(espeak)不可用")
-                return False
-        except (subprocess.CalledProcessError, FileNotFoundError, subprocess.TimeoutExpired):
-            print("⚠️  未安装TTS工具(espeak)")
-            print("💡 安装命令: sudo apt-get install espeak")
-            return False
+
     
-    def list_audio_files(self):
-        """列出音频输出目录中的文件"""
-        try:
-            if not os.path.exists(self.tts_output_dir):
-                print("📁 音频输出目录不存在")
-                return []
-            
-            files = os.listdir(self.tts_output_dir)
-            audio_files = [f for f in files if f.endswith(('.wav', '.mp3'))]
-            
-            if not audio_files:
-                print("📁 音频输出目录为空")
-                return []
-            
-            print(f"📁 音频文件列表 ({len(audio_files)} 个文件):")
-            for i, filename in enumerate(sorted(audio_files, reverse=True), 1):
-                filepath = os.path.join(self.tts_output_dir, filename)
-                file_size = os.path.getsize(filepath)
-                file_time = time.ctime(os.path.getmtime(filepath))
-                print(f"   {i}. {filename}")
-                print(f"      大小: {file_size} 字节")
-                print(f"      时间: {file_time}")
-                print()
-            
-            return audio_files
-            
-        except Exception as e:
-            print(f"⚠️  列出音频文件失败: {str(e)}")
-            return []
+
     
-    def clean_audio_files(self, keep_recent=10):
-        """清理音频文件，保留最近的N个文件"""
-        try:
-            if not os.path.exists(self.tts_output_dir):
-                return
-            
-            files = os.listdir(self.tts_output_dir)
-            audio_files = [f for f in files if f.endswith(('.wav', '.mp3'))]
-            
-            if len(audio_files) <= keep_recent:
-                print(f"📁 音频文件数量({len(audio_files)})未超过限制({keep_recent})，无需清理")
-                return
-            
-            # 按修改时间排序，保留最新的文件
-            audio_files_with_time = []
-            for filename in audio_files:
-                filepath = os.path.join(self.tts_output_dir, filename)
-                mtime = os.path.getmtime(filepath)
-                audio_files_with_time.append((filename, mtime))
-            
-            # 按时间排序，最新的在前
-            audio_files_with_time.sort(key=lambda x: x[1], reverse=True)
-            
-            # 删除旧文件
-            files_to_delete = audio_files_with_time[keep_recent:]
-            deleted_count = 0
-            
-            for filename, _ in files_to_delete:
-                filepath = os.path.join(self.tts_output_dir, filename)
-                try:
-                    os.remove(filepath)
-                    deleted_count += 1
-                except Exception as e:
-                    print(f"⚠️  删除文件 {filename} 失败: {str(e)}")
-            
-            print(f"✅ 清理完成，删除了 {deleted_count} 个旧音频文件")
-            print(f"📁 保留了最新的 {keep_recent} 个音频文件")
-            
-        except Exception as e:
-            print(f"⚠️  清理音频文件失败: {str(e)}")
+
     
     def generate_embedding(self, text):
         """使用 Ollama 生成文本的 embedding 向量（带缓存优化）"""
+        if not text or not text.strip():
+            print("❌ 输入文本为空")
+            return None
+            
         # 生成文本的哈希值作为缓存键
         text_hash = hashlib.md5(text.encode('utf-8')).hexdigest()
         
         # 检查缓存
         with self.cache_lock:
             if text_hash in self.embedding_cache:
-                return self.embedding_cache[text_hash]
+                cached_embedding = self.embedding_cache[text_hash]
+                if cached_embedding is not None and isinstance(cached_embedding, np.ndarray):
+                    return cached_embedding
+                else:
+                    # 清理无效的缓存项
+                    del self.embedding_cache[text_hash]
         
         try:
+            print(f"🔍 正在生成文本的 embedding: '{text[:50]}...'")
             response = ollama.embeddings(model=self.embedding_model, prompt=text)
+            
+            if "embedding" not in response:
+                print(f"❌ Ollama 响应格式错误: {response}")
+                return None
+                
             embedding = response["embedding"]
+            
+            if not embedding or len(embedding) == 0:
+                print("❌ 生成的 embedding 为空")
+                return None
+            
+            # 转换为 numpy 数组
             embedding = np.array(embedding, dtype=np.float32)
-            embedding = embedding / np.linalg.norm(embedding)
+            
+            # 检查数组是否有效
+            if np.isnan(embedding).any() or np.isinf(embedding).any():
+                print("❌ embedding 包含 NaN 或 Inf 值")
+                return None
+            
+            # 归一化
+            norm = np.linalg.norm(embedding)
+            if norm == 0:
+                print("❌ embedding 向量的范数为 0")
+                return None
+                
+            embedding = embedding / norm
+            
+            print(f"✅ embedding 生成成功: 维度 {len(embedding)}, 范数 {np.linalg.norm(embedding):.6f}")
             
             # 缓存结果
             with self.cache_lock:
@@ -466,18 +360,47 @@ class OptimizedQASystem:
                     del self.embedding_cache[oldest_key]
             
             return embedding
+            
         except Exception as e:
             print(f"❌ Embedding 生成失败: {str(e)}")
+            import traceback
+            traceback.print_exc()
             return None
     
     def search_knowledge_base(self, query, top_k=20):
         """在知识库中搜索相关内容（优化版本）"""
         try:
-            query_embedding = self.generate_embedding(query)
-            if query_embedding is None:
+            # 检查 FAISS 索引是否正确加载
+            if self.faiss_index is None:
+                print("❌ FAISS 索引未加载")
                 return []
             
+            # 检查元数据是否正确加载
+            if self.faiss_metadata is None or len(self.faiss_metadata) == 0:
+                print("❌ 元数据未加载")
+                return []
+            
+            # 生成查询的 embedding
+            query_embedding = self.generate_embedding(query)
+            if query_embedding is None:
+                print("❌ 无法生成查询的 embedding")
+                return []
+            
+            # 确保 embedding 是正确的 numpy 数组
+            if not isinstance(query_embedding, np.ndarray):
+                print(f"❌ embedding 类型错误: {type(query_embedding)}")
+                return []
+            
+            # 检查向量维度
+            expected_dim = self.faiss_index.d
+            if query_embedding.shape[0] != expected_dim:
+                print(f"❌ 向量维度不匹配: 期望 {expected_dim}, 实际 {query_embedding.shape[0]}")
+                return []
+            
+            # 重塑为正确的形状
             query_embedding = query_embedding.reshape(1, -1).astype(np.float32)
+            
+            # 执行 FAISS 搜索
             scores, indices = self.faiss_index.search(query_embedding, top_k)
             
             results = []
@@ -500,6 +423,8 @@ class OptimizedQASystem:
             
         except Exception as e:
             print(f"❌ 搜索失败: {str(e)}")
+            import traceback
+            traceback.print_exc()
             return []
     
     def ask_question(self, question):
@@ -550,11 +475,7 @@ class OptimizedQASystem:
         print(f"{answer}")
         print(f"\n⏱️  回答生成耗时: {answer_time:.3f} 秒")
         
-        # 文本转语音
-        if self.tts_enabled:
-            # 检测回答语言
-            answer_language = self.detect_language(answer)
-            self.text_to_speech(answer, answer_language)
+
         
         # 禁用回答缓存，不保存生成的回答
         # with self.cache_lock:
@@ -635,7 +556,7 @@ class OptimizedQASystem:
         chinese_ratio = len(chinese_chars) / total_chars
         english_ratio = len(english_chars) / total_chars
         
-        # 如果中文字符超过20%，或者中文比例大于英文比例，则认为是中文
+        # 如果中文字符超过10%，或者中文比例大于英文比例，则认为是中文
         if chinese_ratio > 0.1 or (chinese_ratio > 0 and chinese_ratio > english_ratio):
             return 'zh'
         elif english_ratio > 0.5:
@@ -659,7 +580,7 @@ class OptimizedQASystem:
         # 构建上下文信息（优化：限制长度）
         context_parts = []
         total_length = 0
-        max_context_length = 2000  # 限制上下文长度
+        max_context_length = 3000  # 限制上下文长度
         
         for result in search_results:
             title = result['title']
@@ -912,6 +833,9 @@ Please answer using "we" expressions in one coherent English paragraph, strictly
                     elif query.lower() == 'info':
                         self.show_system_info()
                         continue
+                    elif query.lower() == 'debug':
+                        self.show_debug_info()
+                        continue
                     elif query.lower() == 'sample':
                         print("💡 示例问题:")
                         for i, question in enumerate(sample_questions, 1):
@@ -940,71 +864,7 @@ Please answer using "we" expressions in one coherent English paragraph, strictly
                         except ValueError:
                             print("❌ 请输入有效的数字")
                         continue
-                    elif query.lower() == 'tts':
-                        self.tts_enabled = not self.tts_enabled
-                        status = "启用" if self.tts_enabled else "禁用"
-                        print(f"✅ 语音合成已{status}")
-                        continue
-                    elif query.lower() == 'voice':
-                        print(f"当前语音类型: {self.tts_voice}")
-                        print("可用选项: zh(中文), en(英文)")
-                        try:
-                            new_voice = self.safe_input("请输入新的语音类型: ").lower()
-                            if new_voice in ['zh', 'en']:
-                                self.tts_voice = new_voice
-                                print(f"✅ 语音类型已设置为: {new_voice}")
-                            else:
-                                print("❌ 语音类型只能是 zh 或 en")
-                        except Exception as e:
-                            print(f"❌ 设置失败: {str(e)}")
-                        continue
-                    elif query.lower() == 'ttsspeed':
-                        print(f"当前语音速度: {self.tts_speed:.1f}x")
-                        try:
-                            new_speed = float(self.safe_input("请输入新的语音速度 (0.5-2.0): "))
-                            if 0.5 <= new_speed <= 2.0:
-                                self.tts_speed = new_speed
-                                print(f"✅ 语音速度已设置为: {new_speed:.1f}x")
-                            else:
-                                print("❌ 速度范围应在 0.5-2.0 之间")
-                        except ValueError:
-                            print("❌ 请输入有效的数字")
-                        continue
-                    elif query.lower() == 'audio':
-                        self.list_audio_files()
-                        continue
-                    elif query.lower() == 'clean':
-                        try:
-                            keep_count = int(self.safe_input("请输入要保留的音频文件数量 (默认10): ") or "10")
-                            self.clean_audio_files(keep_count)
-                        except ValueError:
-                            print("❌ 请输入有效的数字")
-                        continue
-                    elif query.lower() == 'format':
-                        print(f"当前音频格式: {self.tts_format}")
-                        print("可用格式: wav, mp3")
-                        try:
-                            new_format = self.safe_input("请输入新的音频格式: ").lower()
-                            if new_format in ['wav', 'mp3']:
-                                self.tts_format = new_format
-                                print(f"✅ 音频格式已设置为: {new_format}")
-                            else:
-                                print("❌ 音频格式只能是 wav 或 mp3")
-                        except Exception as e:
-                            print(f"❌ 设置失败: {str(e)}")
-                        continue
-                    elif query.lower() == 'output':
-                        print(f"当前输出目录: {self.tts_output_dir}")
-                        try:
-                            new_dir = self.safe_input("请输入新的输出目录: ").strip()
-                            if new_dir:
-                                self.tts_output_dir = new_dir
-                                print(f"✅ 输出目录已设置为: {new_dir}")
-                            else:
-                                print("❌ 输出目录不能为空")
-                        except Exception as e:
-                            print(f"❌ 设置失败: {str(e)}")
-                        continue
+
                     
                     if query.isdigit() and 1 <= int(query) <= len(sample_questions):
                         query = sample_questions[int(query) - 1]
@@ -1031,17 +891,12 @@ Please answer using "we" expressions in one coherent English paragraph, strictly
         print("   - 输入 'help' 显示帮助")
         print("   - 输入 'info' 显示系统信息")
         print("   - 输入 'sample' 显示示例问题")
+        print("   - 输入 'debug' 显示调试信息")
         print("   - 输入 'clear' 清空缓存")
         print("   - 输入 'save' 保存缓存")
         print("   - 输入 'stream' 切换流式显示")
         print("   - 输入 'speed' 调整打字速度")
-        print("   - 输入 'tts' 切换语音合成")
-        print("   - 输入 'voice' 设置语音类型")
-        print("   - 输入 'ttsspeed' 调整语音速度")
-        print("   - 输入 'format' 设置音频格式")
-        print("   - 输入 'output' 设置输出目录")
-        print("   - 输入 'audio' 列出音频文件")
-        print("   - 输入 'clean' 清理旧音频文件")
+
         print("   - 输入 'quit' 或 'exit' 退出程序")
         print("\n⌨️  输入功能:")
         print("   - 支持方向键移动光标")
@@ -1055,10 +910,69 @@ Please answer using "we" expressions in one coherent English paragraph, strictly
         print("   - 智能缓存机制，重复问题秒答")
         print("   - 优化的搜索算法，响应更快")
         print("   - 流式回答显示，打字机效果")
-        print("   - 文本转语音功能，保存为音频文件")
-        print("   - 支持多种音频格式和文件管理")
         print("   - 实时生成回答，不保存缓存")
         print("   - 基于英文 Wiki 内容，质量高")
+    
+    def show_debug_info(self):
+        """显示调试信息"""
+        print("\n🔍 调试信息:")
+        print(f"   FAISS 索引: {'已加载' if self.faiss_index else '未加载'}")
+        if self.faiss_index:
+            print(f"     索引类型: {type(self.faiss_index).__name__}")
+            print(f"     向量数量: {self.faiss_index.ntotal}")
+            print(f"     向量维度: {self.faiss_index.d}")
+            print(f"     索引状态: {'正常' if self.faiss_index.ntotal > 0 else '异常'}")
+        
+        print(f"   元数据: {'已加载' if self.faiss_metadata else '未加载'}")
+        if self.faiss_metadata:
+            print(f"     记录数量: {len(self.faiss_metadata)}")
+            print(f"     第一条记录: {list(self.faiss_metadata[0].keys()) if self.faiss_metadata else '无'}")
+        
+        print(f"   Wiki 页面: {'已加载' if self.wiki_pages else '未加载'}")
+        if self.wiki_pages:
+            print(f"     页面数量: {len(self.wiki_pages)}")
+            print(f"     第一条页面: {list(self.wiki_pages[0].keys()) if self.wiki_pages else '无'}")
+        
+        print(f"   Embedding 模型: {self.embedding_model}")
+        print(f"   Embedding 缓存: {len(self.embedding_cache)} 项")
+        print(f"   回答缓存: {len(self.answer_cache)} 项")
+        
+        # 测试 embedding 生成
+        print("\n🧪 测试 Embedding 生成...")
+        try:
+            test_text = "test"
+            test_embedding = self.generate_embedding(test_text)
+            if test_embedding is not None:
+                print(f"   ✅ 测试成功: 维度 {len(test_embedding)}, 类型 {type(test_embedding)}")
+                print(f"      范数: {np.linalg.norm(test_embedding):.6f}")
+                print(f"      数据类型: {test_embedding.dtype}")
+                print(f"      形状: {test_embedding.shape}")
+            else:
+                print("   ❌ 测试失败: 返回 None")
+        except Exception as e:
+            print(f"   ❌ 测试异常: {str(e)}")
+        
+        # 检查数据一致性
+        print("\n🔍 数据一致性检查:")
+        if self.faiss_index and self.faiss_metadata and self.wiki_pages:
+            index_count = self.faiss_index.ntotal
+            metadata_count = len(self.faiss_metadata)
+            pages_count = len(self.wiki_pages)
+            
+            print(f"   FAISS 索引向量数: {index_count}")
+            print(f"   元数据记录数: {metadata_count}")
+            print(f"   Wiki 页面数: {pages_count}")
+            
+            if index_count == metadata_count == pages_count:
+                print("   ✅ 数据一致性: 完全匹配")
+            else:
+                print("   ⚠️  数据一致性: 不匹配")
+                if index_count != metadata_count:
+                    print(f"      ⚠️  索引与元数据不匹配: {index_count} vs {metadata_count}")
+                if metadata_count != pages_count:
+                    print(f"      ⚠️  元数据与页面不匹配: {metadata_count} vs {pages_count}")
+        else:
+            print("   ❌ 无法检查: 数据未完全加载")
 
 def main():
     """主函数"""
