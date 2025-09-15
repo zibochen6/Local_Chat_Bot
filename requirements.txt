@@ -1,9 +1,12 @@
-requests>=2.25.1
-beautifulsoup4>=4.9.3
-lxml>=4.6.3
-langdetect>=1.0.9
-faiss-cpu>=1.7.0
+# 基础依赖
 numpy>=1.21.0
-googletrans==4.0.0rc1
-pickle5>=0.0.11
+faiss-cpu>=1.7.0  # 或者 faiss-gpu 如果有GPU
 ollama>=0.1.0
+torch>=1.9.0
+torchaudio>=0.9.0
+
+# TTS相关
+melo-tts>=0.1.0
+
+# 其他工具
+readline  # Linux/macOS

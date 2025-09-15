@@ -19,6 +19,9 @@ import hashlib
 from functools import lru_cache
 from concurrent.futures import ThreadPoolExecutor
 import threading
+import torch
+import gc
+import tempfile
 
 
 class OptimizedQASystem:
@@ -38,6 +41,18 @@ class OptimizedQASystem:
         self.streaming_enabled = True  # 是否启用流式显示
         self.typing_speed = 0.03  # 打字速度（秒/字符）
         
+        # TTS相关
+        self.tts_enabled = False  # 是否启用TTS
+        self.tts_model = None  # TTS模型
+        self.tts_speaker_id = None  # 说话人ID
+        self.tts_device = None  # TTS设备
+        self.audio_playing = False  # 音频播放状态
+        self.tts_available = False  # TTS是否可用
+        self.tts_thread = None  # TTS线程
+        self.tts_queue = []  # TTS任务队列
+        self.tts_lock = threading.Lock()  # TTS锁
+        self.tts_processing = False  # TTS是否正在处理
+        
 
         
         # 设置 readline 配置
@@ -49,7 +64,8 @@ class OptimizedQASystem:
         # 检查 Ollama 服务
         self.check_ollama_service()
         
-
+        # 检查TTS模块可用性（不初始化）
+        self.check_tts_availability()
         
         # 初始化系统
         self.initialize_system()
@@ -134,6 +150,204 @@ class OptimizedQASystem:
         except Exception as e:
             print(f"❌ Ollama 服务检查失败: {str(e)}")
             raise
+    
+    def check_tts_availability(self):
+        """检查TTS模块是否可用（不实际导入）"""
+        print("🎤 检查TTS模块可用性...")
+        
+        # 检查是否安装了必要的包
+        try:
+            import importlib.util
+            
+            # 检查melo-tts
+            melo_spec = importlib.util.find_spec("melo")
+            if melo_spec is None:
+                print("⚠️  Melo TTS模块未安装")
+                self.tts_available = False
+                return
+            
+            # pygame不是必需的，我们只保存文件不播放
+            
+            print("✅ TTS相关模块已安装")
+            self.tts_available = True
+            
+        except Exception as e:
+            print(f"⚠️  TTS模块检查失败: {str(e)}")
+            self.tts_available = False
+    
+    
+    def enable_tts(self):
+        """启用TTS功能"""
+        if not self.tts_available:
+            raise Exception("TTS模块不可用")
+        
+        if self.tts_enabled:
+            return  # 已经启用
+        
+        try:
+            from melo.api import TTS
+            
+            print("🔧 配置PyTorch优化...")
+            torch.backends.cudnn.benchmark = True
+            torch.backends.cudnn.deterministic = False
+            
+            # 设备配置
+            self.tts_device = 'cuda' if torch.cuda.is_available() else 'cpu'
+            print(f"🎤 检测到设备: {self.tts_device}")
+            
+            if self.tts_device == 'cuda':
+                print("🔧 配置CUDA内存...")
+                torch.cuda.empty_cache()
+                torch.cuda.set_per_process_memory_fraction(0.6)
+                print(f"✅ CUDA内存配置完成")
+            
+            # 初始化TTS模型
+            print("📥 正在加载TTS模型...")
+            start_time = time.time()
+            self.tts_model = TTS(language='ZH', device=self.tts_device)
+            load_time = time.time() - start_time
+            print(f"✅ TTS模型加载完成，耗时: {load_time:.2f}秒")
+            
+            # 获取说话人ID
+            speaker_ids = self.tts_model.hps.data.spk2id
+            self.tts_speaker_id = speaker_ids['ZH']
+            print(f"✅ 说话人ID: {self.tts_speaker_id}")
+            
+            # 创建音频输出目录
+            self.audio_output_dir = "./audio_outputs"
+            os.makedirs(self.audio_output_dir, exist_ok=True)
+            print(f"✅ 音频输出目录: {self.audio_output_dir}")
+            
+            # 模型预热
+            print("🔥 正在进行TTS模型预热...")
+            warmup_text = "你好"
+            start_time = time.time()
+            warmup_path = os.path.join(self.audio_output_dir, "warmup.wav")
+            self.tts_model.tts_to_file(warmup_text, self.tts_speaker_id, warmup_path, speed=1.0)
+            warmup_time = time.time() - start_time
+            print(f"✅ TTS预热完成，耗时: {warmup_time:.2f}秒")
+            
+            # 清理预热文件
+            try:
+                os.unlink(warmup_path)
+            except:
+                pass
+            
+            self.tts_enabled = True
+            
+            # 启动TTS工作线程
+            self.tts_thread = threading.Thread(target=self.tts_worker_thread, daemon=True)
+            self.tts_thread.start()
+            print("🎉 TTS功能启用成功！")
+            print("🧵 TTS后台线程已启动")
+            
+        except Exception as e:
+            print(f"❌ TTS启用失败: {str(e)}")
+            self.tts_enabled = False
+            self.tts_model = None
+            raise
+    
+    def disable_tts(self):
+        """禁用TTS功能"""
+        if not self.tts_enabled:
+            return
+        
+        print("🔄 正在禁用TTS功能...")
+        
+        # 停止TTS线程
+        self.tts_enabled = False
+        
+        # 等待线程结束
+        if self.tts_thread and self.tts_thread.is_alive():
+            print("⏳ 等待TTS线程结束...")
+            self.tts_thread.join(timeout=5)  # 最多等待5秒
+        
+        # 清空队列
+        with self.tts_lock:
+            self.tts_queue.clear()
+            self.tts_processing = False
+        
+        # 清理资源
+        if self.tts_device == 'cuda':
+            torch.cuda.empty_cache()
+            gc.collect()
+        
+        print("✅ TTS功能已禁用")
+    
+    def tts_worker_thread(self):
+        """TTS工作线程"""
+        while self.tts_enabled:
+            try:
+                # 检查队列中是否有任务
+                with self.tts_lock:
+                    if not self.tts_queue:
+                        time.sleep(0.1)  # 短暂休眠
+                        continue
+                    
+                    # 获取任务
+                    task = self.tts_queue.pop(0)
+                    self.tts_processing = True
+                
+                # 处理TTS任务
+                text = task.get('text', '')
+                speed = task.get('speed', 1.0)
+                callback = task.get('callback', None)
+                
+                if text and self.tts_model:
+                    print(f"🎤 [后台] 开始生成语音: '{text[:30]}...'")
+                    
+                    # 生成语音文件
+                    audio_file = self._generate_audio_file(text, speed)
+                    
+                    if audio_file and callback:
+                        callback(audio_file)
+                    
+                    print(f"🎤 [后台] 语音生成完成: {audio_file}")
+                
+                with self.tts_lock:
+                    self.tts_processing = False
+                    
+            except Exception as e:
+                print(f"❌ [后台] TTS处理错误: {str(e)}")
+                with self.tts_lock:
+                    self.tts_processing = False
+                time.sleep(1)  # 错误后短暂休眠
+    
+    def _generate_audio_file(self, text, speed=1.0):
+        """生成音频文件（内部方法）"""
+        try:
+            # 清理文本
+            clean_text = re.sub(r'[^\w\s\u4e00-\u9fff，。！？；：""''（）【】]', '', text)
+            if not clean_text.strip():
+                return None
+            
+            # 限制文本长度
+            if len(clean_text) > 500:
+                clean_text = clean_text[:500] + "..."
+            
+            # 生成文件名
+            timestamp = int(time.time())
+            text_hash = hashlib.md5(clean_text.encode('utf-8')).hexdigest()[:8]
+            filename = f"answer_{timestamp}_{text_hash}.wav"
+            output_path = os.path.join(self.audio_output_dir, filename)
+            
+            # 生成语音
+            start_time = time.time()
+            self.tts_model.tts_to_file(clean_text, self.tts_speaker_id, output_path, speed=speed)
+            tts_time = time.time() - start_time
+            
+            # 获取文件大小
+            file_size = os.path.getsize(output_path)
+            file_size_mb = file_size / (1024 * 1024)
+            
+            print(f"📁 [后台] 文件已保存: {output_path}")
+            print(f"📊 [后台] 大小: {file_size_mb:.2f} MB, 耗时: {tts_time:.2f}秒")
+            
+            return output_path
+            
+        except Exception as e:
+            print(f"❌ [后台] 音频生成失败: {str(e)}")
+            return None
     
     def initialize_system(self):
         """初始化系统"""
@@ -226,6 +440,15 @@ class OptimizedQASystem:
         print(f"   缓存状态: Embedding缓存 {len(self.embedding_cache)} 项，回答缓存已禁用")
         print(f"   流式显示: {'启用' if self.streaming_enabled else '禁用'}")
         print(f"   打字速度: {self.typing_speed:.3f} 秒/字符")
+        print(f"   TTS功能: {'启用' if self.tts_enabled else '禁用'}")
+        print(f"   TTS模块: {'可用' if self.tts_available else '不可用'}")
+        if self.tts_enabled:
+            print(f"   TTS设备: {self.tts_device}")
+            print(f"   音频输出: 文件保存模式")
+            print(f"   输出目录: {getattr(self, 'audio_output_dir', '未设置')}")
+            print(f"   TTS线程: {'运行中' if self.tts_thread and self.tts_thread.is_alive() else '未启动'}")
+            print(f"   队列状态: {len(self.tts_queue)} 个任务")
+            print(f"   处理状态: {'处理中' if self.tts_processing else '空闲'}")
 
     
     def load_cache(self):
@@ -290,6 +513,85 @@ class OptimizedQASystem:
         
         print()  # 换行
         return full_answer
+    
+    def text_to_speech(self, text, speed=1.0, callback=None):
+        """将文本转换为语音并保存到文件（异步处理）"""
+        if not self.tts_enabled or not self.tts_model or not text.strip():
+            return False
+            
+        try:
+            # 清理文本，移除特殊字符
+            clean_text = re.sub(r'[^\w\s\u4e00-\u9fff，。！？；：""''（）【】]', '', text)
+            if not clean_text.strip():
+                return False
+            
+            # 限制文本长度，避免生成过长的音频
+            if len(clean_text) > 500:
+                clean_text = clean_text[:500] + "..."
+            
+            # 创建TTS任务
+            task = {
+                'text': clean_text,
+                'speed': speed,
+                'callback': callback or self._default_tts_callback
+            }
+            
+            # 添加到队列
+            with self.tts_lock:
+                self.tts_queue.append(task)
+            
+            print(f"🎤 语音任务已加入队列: '{clean_text[:30]}...'")
+            print(f"📊 队列长度: {len(self.tts_queue)}")
+            
+            return True
+                
+        except Exception as e:
+            print(f"❌ TTS任务添加失败: {str(e)}")
+            return False
+    
+    def _default_tts_callback(self, audio_file):
+        """默认TTS回调函数"""
+        if audio_file:
+            print(f"✅ 语音文件生成完成: {audio_file}")
+            print(f"💡 您可以使用音频播放器播放此文件")
+        else:
+            print("❌ 语音文件生成失败")
+    
+    def stop_audio(self):
+        """停止音频播放（文件保存模式不需要）"""
+        print("💡 当前使用文件保存模式，无需停止播放")
+    
+    def show_audio_files(self):
+        """显示音频文件信息"""
+        if not hasattr(self, 'audio_output_dir') or not os.path.exists(self.audio_output_dir):
+            print("📁 音频输出目录不存在")
+            return
+        
+        audio_files = [f for f in os.listdir(self.audio_output_dir) if f.endswith('.wav')]
+        
+        if not audio_files:
+            print("📁 音频输出目录为空")
+            return
+        
+        print(f"📁 音频文件列表 (共 {len(audio_files)} 个):")
+        print(f"📂 目录: {self.audio_output_dir}")
+        print("-" * 60)
+        
+        for i, filename in enumerate(sorted(audio_files, reverse=True)[:10], 1):  # 显示最近10个
+            file_path = os.path.join(self.audio_output_dir, filename)
+            file_size = os.path.getsize(file_path)
+            file_size_mb = file_size / (1024 * 1024)
+            mod_time = time.ctime(os.path.getmtime(file_path))
+            
+            print(f"{i:2d}. {filename}")
+            print(f"    大小: {file_size_mb:.2f} MB")
+            print(f"    时间: {mod_time}")
+            print()
+        
+        if len(audio_files) > 10:
+            print(f"... 还有 {len(audio_files) - 10} 个文件")
+        
+        print("💡 您可以使用音频播放器播放这些文件")
     
 
     
@@ -474,6 +776,16 @@ class OptimizedQASystem:
         print(f"\n💬 回答:")
         print(f"{answer}")
         print(f"\n⏱️  回答生成耗时: {answer_time:.3f} 秒")
+        
+        # 语音生成回答（异步处理）
+        if self.tts_enabled and answer:
+            print("🎤 正在将语音任务加入队列...")
+            success = self.text_to_speech(answer, speed=1.0)
+            if success:
+                print("✅ 语音任务已加入后台处理队列")
+                print("💡 语音文件将在后台生成，完成后会显示文件路径")
+            else:
+                print("❌ 语音任务添加失败")
         
 
         
@@ -864,6 +1176,27 @@ Please answer using "we" expressions in one coherent English paragraph, strictly
                         except ValueError:
                             print("❌ 请输入有效的数字")
                         continue
+                    elif query.lower() == 'tts':
+                        if not self.tts_available:
+                            print("❌ TTS模块不可用，请先安装: pip install melo-tts pygame")
+                            continue
+                        
+                        if not self.tts_enabled:
+                            # 尝试启用TTS
+                            print("🎤 正在启用TTS功能...")
+                            try:
+                                self.enable_tts()
+                                print("✅ TTS功能已启用")
+                            except Exception as e:
+                                print(f"❌ TTS启用失败: {str(e)}")
+                                print("💡 TTS功能保持禁用状态")
+                        else:
+                            self.disable_tts()
+                            print("✅ TTS功能已禁用")
+                        continue
+                    elif query.lower() == 'stop':
+                        self.show_audio_files()
+                        continue
 
                     
                     if query.isdigit() and 1 <= int(query) <= len(sample_questions):
@@ -880,6 +1213,10 @@ Please answer using "we" expressions in one coherent English paragraph, strictly
                     continue
                     
         finally:
+            # 禁用TTS功能
+            if self.tts_enabled:
+                self.disable_tts()
+            
             # 保存输入历史和缓存
             self.save_history()
             self.save_cache()
@@ -896,7 +1233,8 @@ Please answer using "we" expressions in one coherent English paragraph, strictly
         print("   - 输入 'save' 保存缓存")
         print("   - 输入 'stream' 切换流式显示")
         print("   - 输入 'speed' 调整打字速度")
-
+        print("   - 输入 'tts' 启用/禁用TTS功能")
+        print("   - 输入 'stop' 查看音频文件信息")
         print("   - 输入 'quit' 或 'exit' 退出程序")
         print("\n⌨️  输入功能:")
         print("   - 支持方向键移动光标")
@@ -912,6 +1250,10 @@ Please answer using "we" expressions in one coherent English paragraph, strictly
         print("   - 流式回答显示，打字机效果")
         print("   - 实时生成回答，不保存缓存")
         print("   - 基于英文 Wiki 内容，质量高")
+        print("   - 语音文件生成，支持TTS功能")
+        print("   - 音频文件保存，无需扬声器")
+        print("   - 多线程处理，不阻塞主程序")
+        print("   - 后台语音合成，响应更快")
     
     def show_debug_info(self):
         """显示调试信息"""
@@ -985,4 +1327,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

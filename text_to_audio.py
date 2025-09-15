@@ -1,111 +1,40 @@
-from melo.api import TTS
-import time
-import torch
-import gc
+import sys
+sys.path.append('/home/seeed/Local_Chat_Bot/audio/CosyVoice/third_party/Matcha-TTS')
+sys.path.append('/home/seeed/Local_Chat_Bot/audio/CosyVoice')
+from cosyvoice.cli.cosyvoice import CosyVoice, CosyVoice2
+from cosyvoice.utils.file_utils import load_wav
+import torchaudio
 
-def optimize_tts_inference():
-    # 性能优化设置
-    torch.backends.cudnn.benchmark = True  # 启用 cuDNN 自动调优
-    torch.backends.cudnn.deterministic = False  # 关闭确定性模式以提高速度
-    
-    # 设备配置
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    if device == 'cuda':
-        # 设置 CUDA 内存分配策略
-        torch.cuda.empty_cache()
-        torch.cuda.set_per_process_memory_fraction(0.9)  # 使用90%的GPU内存
-    
-    # 模型初始化（只初始化一次）
-    print("正在加载TTS模型...")
-    start_time = time.time()
-    model = TTS(language='ZH', device=device)
-    load_time = time.time() - start_time
-    print(f"模型加载耗时: {load_time:.2f}秒")
-    
-    # 获取说话人ID
-    speaker_ids = model.hps.data.spk2id
-    speaker_id = speaker_ids['ZH']
-    
-    # 模型预热（第一次推理通常较慢）
-    print("正在进行模型预热...")
-    warmup_text = "你好"
-    start_time = time.time()
-    model.tts_to_file(warmup_text, speaker_id, 'warmup.wav', speed=1.0)
-    warmup_time = time.time() - start_time
-    print(f"预热耗时: {warmup_time:.2f}秒")
-    
-    # 清理预热文件
-    import os
-    if os.path.exists('warmup.wav'):
-        os.remove('warmup.wav')
-    
-    # 主要文本处理
-    text = "你好我是小seeed,有什么问题可以问我。"
-    
-    # 优化推理参数
-    speed = 1.5  # 提高速度到1.5倍
-    output_path = 'output.wav'
-    
-    print("开始主要推理...")
-    start_time = time.time()
-    
-    # 执行TTS推理
-    model.tts_to_file(text, speaker_id, output_path, speed=speed)
-    
-    inference_time = time.time() - start_time
-    print(f"推理耗时: {inference_time:.2f}秒")
-    
-    # 性能统计
-    total_time = load_time + warmup_time + inference_time
-    print(f"总耗时: {total_time:.2f}秒")
-    print(f"音频已保存到: {output_path}")
-    
-    # 清理GPU内存
-    if device == 'cuda':
-        torch.cuda.empty_cache()
-        gc.collect()
-    
-    return output_path
+print("Starting CosyVoice initialization...")
+cosyvoice = CosyVoice2('/home/seeed/Local_Chat_Bot/audio/CosyVoice/pretrained_models/CosyVoice2-0.5B', load_jit=False, load_trt=False, load_vllm=False, fp16=False)
+print("CosyVoice initialized successfully!")
 
-def batch_tts_inference(texts, output_dir='outputs'):
-    """批量处理多个文本以提高效率"""
-    import os
-    os.makedirs(output_dir, exist_ok=True)
-    
-    # 初始化模型（只初始化一次）
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    model = TTS(language='ZH', device=device)
-    speaker_ids = model.hps.data.spk2id
-    speaker_id = speaker_ids['ZH']
-    
-    # 预热
-    model.tts_to_file("你好", speaker_id, 'temp.wav', speed=1.0)
-    if os.path.exists('temp.wav'):
-        os.remove('temp.wav')
-    
-    results = []
-    for i, text in enumerate(texts):
-        output_path = os.path.join(output_dir, f'output_{i+1}.wav')
-        start_time = time.time()
-        model.tts_to_file(text, speaker_id, output_path, speed=1.5)
-        inference_time = time.time() - start_time
-        results.append({
-            'text': text,
-            'output_path': output_path,
-            'inference_time': inference_time
-        })
-        print(f"文本 {i+1}: {inference_time:.2f}秒")
-    
-    return results
+# NOTE if you want to reproduce the results on https://funaudiollm.github.io/cosyvoice2, please add text_frontend=False during inference
+# zero_shot usage
+prompt_speech_16k = load_wav('/home/seeed/Local_Chat_Bot/audio/CosyVoice/asset/zero_shot_prompt.wav', 16000)
+for i, j in enumerate(cosyvoice.inference_zero_shot('收到好友从远方寄来的生日礼物，那份意外的惊喜与深深的祝福让我心中充满了甜蜜的快乐，笑容如花儿般绽放。', '希望你以后能够做的比我还好呦。', prompt_speech_16k, stream=False)):
+    torchaudio.save('zero_shot_{}.wav'.format(i), j['tts_speech'], cosyvoice.sample_rate)
 
-if __name__ == "__main__":
-    # 单次推理
-    output_file = optimize_tts_inference()
-    
-    # 批量推理示例（可选）
-    # texts = [
-    #     "你好我是小seeed,有什么问题可以问我。",
-    #     "今天天气真不错。",
-    #     "人工智能技术发展很快。"
-    # ]
-    # batch_results = batch_tts_inference(texts)
+# save zero_shot spk for future usage
+assert cosyvoice.add_zero_shot_spk('希望你以后能够做的比我还好呦。', prompt_speech_16k, 'my_zero_shot_spk') is True
+for i, j in enumerate(cosyvoice.inference_zero_shot('收到好友从远方寄来的生日礼物，那份意外的惊喜与深深的祝福让我心中充满了甜蜜的快乐，笑容如花儿般绽放。', '', '', zero_shot_spk_id='my_zero_shot_spk', stream=False)):
+    torchaudio.save('zero_shot_{}.wav'.format(i), j['tts_speech'], cosyvoice.sample_rate)
+cosyvoice.save_spkinfo()
+
+# fine grained control, for supported control, check cosyvoice/tokenizer/tokenizer.py#L248
+for i, j in enumerate(cosyvoice.inference_cross_lingual('在他讲述那个荒诞故事的过程中，他突然[laughter]停下来，因为他自己也被逗笑了[laughter]。', prompt_speech_16k, stream=False)):
+    torchaudio.save('fine_grained_control_{}.wav'.format(i), j['tts_speech'], cosyvoice.sample_rate)
+
+# instruct usage
+for i, j in enumerate(cosyvoice.inference_instruct2('收到好友从远方寄来的生日礼物，那份意外的惊喜与深深的祝福让我心中充满了甜蜜的快乐，笑容如花儿般绽放。', '用四川话说这句话', prompt_speech_16k, stream=False)):
+    torchaudio.save('instruct_{}.wav'.format(i), j['tts_speech'], cosyvoice.sample_rate)
+
+# bistream usage, you can use generator as input, this is useful when using text llm model as input
+# NOTE you should still have some basic sentence split logic because llm can not handle arbitrary sentence length
+def text_generator():
+    yield '收到好友从远方寄来的生日礼物，'
+    yield '那份意外的惊喜与深深的祝福'
+    yield '让我心中充满了甜蜜的快乐，'
+    yield '笑容如花儿般绽放。'
+for i, j in enumerate(cosyvoice.inference_zero_shot(text_generator(), '希望你以后能够做的比我还好呦。', prompt_speech_16k, stream=False)):
+    torchaudio.save('zero_shot_{}.wav'.format(i), j['tts_speech'], cosyvoice.sample_rate)
